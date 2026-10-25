@@ -192,6 +192,13 @@ def _restore(before: dict[Path, bytes | None]) -> tuple[list[str], list[str]]:
     return changed, failed
 
 
+# Слепок снят до тестов, поэтому откат отменяет и то, что в это время записал не тест.
+_REVERTED = (
+    "; все изменения за время проверки, в том числе со страницы, отменены: "
+    "если правили вы, повторите"
+)
+
+
 def _not_restored(failed: list[str]) -> str:
     """Хвост отказа о файлах, которые вернуть не удалось: их возвращают из backups/ или git."""
     return f"; вернуть не удалось: {', '.join(failed)}" if failed else ""
@@ -285,7 +292,7 @@ def _run_test_file(data: DataDir, path: Path) -> ExtensionTests:
         owner = path.stem.removeprefix("test_")
         tampered.append(
             f"тесты расширения {owner} изменили {', '.join(changed)} мимо основы"
-            + (_not_restored(failed) or "; изменения возвращены")
+            + (_not_restored(failed) or _REVERTED)
         )
     if done is None:
         raise LedgerError(
