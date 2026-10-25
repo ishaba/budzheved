@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import os
 import re
 import subprocess
@@ -42,6 +43,13 @@ def in_git(root: Path) -> bool:
     except (OSError, subprocess.TimeoutExpired):
         return False
     return done.returncode == 0
+
+
+@functools.cache
+def _kept_by_git(root: Path) -> bool:
+    """in_git, один раз на папку данных за время работы программы: запись вызывает его
+    каждый раз, а git на каждую запись — лишний процесс."""
+    return in_git(root)
 
 
 def _now() -> datetime:
@@ -100,7 +108,7 @@ def before_write(data: DataDir) -> Path | None:
 
     Вызывается под замком журнала (ops._exclusive).
     """
-    if in_git(data.root):
+    if _kept_by_git(data.root.resolve()):
         return None
     return _copy(data)
 

@@ -21,6 +21,8 @@ class BackupsTest(unittest.TestCase):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         self.data = make_data(Path(tmp.name) / "Мои деньги", MINIMAL)
+        backups._kept_by_git.cache_clear()
+        self.addCleanup(backups._kept_by_git.cache_clear)
 
     def add(self, amount: str):
         return ops.add_entry(
@@ -83,6 +85,16 @@ class BackupsTest(unittest.TestCase):
         self.assertEqual(len(self.names()), 1)
         self.git("add", "Мои деньги/journal.csv", cwd=home)
         self.assertTrue(backups.in_git(self.data.root))
+
+    def test_git_is_asked_once_per_folder_however_many_writes(self):
+        # git выше по дереву: без кеша его спрашивали бы на каждой записи
+        (self.data.root / ".git").mkdir()
+        not_tracked = subprocess.CompletedProcess([], 1)
+        with mock.patch("ledger.backups.subprocess.run", return_value=not_tracked) as run:
+            self.add("1")
+            self.add("2")
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(len(self.names()), 2)
 
     def test_folder_named_git_or_missing_git_is_not_a_repository(self):
         (self.data.root / ".git").mkdir()  # не репозиторий
