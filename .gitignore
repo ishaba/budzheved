@@ -1,0 +1,12 @@
+.env
+.env.*
+.DS_Store
+.worktrees/
+.claude/worktrees/
+.claude/settings.local.json
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.json

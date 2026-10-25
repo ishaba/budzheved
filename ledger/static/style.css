@@ -1,0 +1,129 @@
+/* Страница собрана на Bulma (vendor/bulma.min.css) с её настройками по умолчанию.
+   Здесь только палитра «Бюджевед» и раскладка, которой в библиотеке нет. */
+:root {
+  color-scheme: light dark;
+  --bv-bg: #fcfaf4;
+  --bv-muted: #5e6a63;
+  --bv-line: #e3ded1;
+  --bv-mark: #d0a65a;
+  --bv-focus: #9a7322;
+  --bv-warn-bg: #f6ebd3;
+  --bv-error: #9c2f24;
+  --bv-ok: #2c6a44;
+  --bv-new: #fbf3e1;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bv-bg: #26352e;
+    --bv-muted: #b7c0b9;
+    --bv-line: #43564c;
+    --bv-focus: #d0a65a;
+    --bv-warn-bg: #4a4428;
+    --bv-error: #f2a59c;
+    --bv-ok: #9ad1ac;
+    --bv-new: #3a4433;
+  }
+}
+[hidden] { display: none !important; }
+/* .card задаёт display и иначе показал бы закрытое окно. */
+dialog:not([open]) { display: none !important; }
+:focus-visible { outline: 2px solid var(--bv-focus); outline-offset: 1px; }
+
+/* Цвета. */
+.bv-muted { color: var(--bv-muted); }
+.bv-error { color: var(--bv-error); }
+.bv-ok { color: var(--bv-ok); }
+.bv-dashed { border: 1px dashed var(--bv-mark); box-shadow: none; }
+.bv-hot { border-color: var(--bv-mark) !important; background-color: var(--bv-warn-bg) !important; }
+tr.bv-new > td { background-color: var(--bv-new); box-shadow: none; }
+tr.bv-new > td:first-child { box-shadow: inset 3px 0 var(--bv-mark); }
+.bv-dialog::backdrop { background: rgba(38, 53, 46, .4); }
+
+/* Цифры. */
+.bv-num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bv-digits { font-variant-numeric: tabular-nums; }
+
+/* Раскладка. */
+.bv-brand { margin: 0; line-height: 0; }
+.bv-brand img { display: block; height: 92px; width: auto; max-width: none; margin: -22px 0 -22px -11px; }
+.bv-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.bv-breakdown dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+.bv-breakdown dt, .bv-breakdown dd { margin: 0; font-weight: inherit; }
+.bv-breakdown dd { text-align: right; font-variant-numeric: tabular-nums; }
+.bv-breakdown .bv-total { border-top: 1px solid var(--bv-line); }
+.bv-filters { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: center; }
+.bv-filters label { display: flex; align-items: center; gap: .5rem; margin: 0; }
+.bv-density { margin: 0 0 0 auto; flex-wrap: nowrap; }
+.bv-search { flex: 1; width: auto; min-width: 200px; max-width: 320px; }
+.bv-table td { vertical-align: middle; }
+/* Узкая таблица (is-narrow) прижимает заголовки к линии: возвращаем им воздух. */
+.table.bv-table thead th { padding-top: 0; padding-bottom: .75em; }
+.bv-actions { white-space: nowrap; text-align: right !important; }
+.bv-pair { display: grid; grid-template-columns: 1fr 110px; gap: 8px; }
+/* .card ставит position: relative; модальному окну нужен fixed, иначе оно уезжает вместе со страницей. */
+.bv-dialog { position: fixed; inset: 0; width: min(560px, 94vw); height: fit-content; max-height: 90vh; overflow-y: auto; margin: auto !important; padding: 0; color: inherit; }
+.notification.bv-toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); width: max-content; max-width: min(720px, 94vw); margin: 0; display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; padding-right: 3rem; z-index: 2000; }
+
+/* Цвета Bulma под палитру. Библиотека считает оттенки из H, S и L, поэтому
+   задаём их. Лесной #26352E = hsl(152 16% 18%), охра #D0A65A = hsl(39 56% 58%). */
+:root {
+  --bulma-body-background-color: var(--bv-bg);
+  --bulma-scheme-h: 152;
+  --bulma-scheme-s: 16%;
+  --bulma-text-h: 152deg;
+  --bulma-text-s: 16%;
+  --bulma-text-l: 18%;
+  --bulma-text-strong-l: 18%;
+  --bulma-text-weak-l: 38%;
+  --bulma-border-l: 52%;        /* границы полей и кнопок: 3:1 и на белом, и на бумаге */
+  --bulma-border-weak-l: 87%;
+  --bulma-primary-h: 152deg;
+  --bulma-primary-s: 16%;
+  --bulma-primary-l: 18%;
+  --bulma-primary-invert-l: 97%;
+  --bulma-link-h: 152deg;
+  --bulma-link-s: 16%;
+  --bulma-link-l: 18%;
+  --bulma-link-on-scheme-l: 18%;
+  --bulma-focus-h: 41deg;
+  --bulma-focus-s: 64%;
+  --bulma-focus-l: 37%;
+  --bulma-warning-h: 39deg;
+  --bulma-warning-s: 56%;
+  --bulma-warning-l: 58%;
+  --bulma-danger-h: 6deg;
+  --bulma-danger-s: 63%;
+  /* Вместо тени Bulma — тонкая рамка: на тёмном фоне тень выглядела свечением. */
+  --bulma-shadow: 0 0 0 1px var(--bv-line);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bulma-scheme-main-l: 22%;      /* поверхность #30423A */
+    --bulma-scheme-main-bis-l: 25%;
+    --bulma-scheme-main-ter-l: 28%;
+    --bulma-background-l: 27%;
+    --bulma-text-l: 97%;
+    --bulma-text-strong-l: 97%;
+    --bulma-text-weak-l: 74%;
+    --bulma-border-l: 58%;
+    --bulma-border-weak-l: 31%;
+    --bulma-primary-h: 39deg;
+    --bulma-primary-s: 56%;
+    --bulma-primary-l: 58%;
+    --bulma-primary-invert-l: 14%;
+    --bulma-link-h: 39deg;
+    --bulma-link-s: 56%;
+    --bulma-link-l: 58%;
+    --bulma-link-on-scheme-l: 58%;
+    --bulma-focus-l: 58%;
+  }
+}
+.table { --bulma-table-cell-border-color: var(--bv-line); }
+
+/* Раскладка: то, чего в Bulma нет или что ломается от её автоотступов. */
+.grid > .box { margin-bottom: 0; }
+.bv-link { border: 0; background: none; padding: 0; font: inherit; color: var(--bulma-link-text); text-decoration: underline; cursor: pointer; }
+/* Двойной класс перебивает автоотступ .box:not(:last-child). */
+.box.bv-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(380px, 100vw); overflow-y: auto; z-index: 50; margin: 0; border-radius: 0; border-left: 1px solid var(--bv-line); padding-bottom: 8rem; }
+.bv-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+dialog.bv-dialog { border: 0; }

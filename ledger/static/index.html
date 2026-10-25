@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Бюджевед</title>
+  <link rel="icon" type="image/svg+xml" href="/static/budzheved-icon.svg">
+  <link rel="stylesheet" href="/static/vendor/bulma.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="p-5">
+  <header class="level is-mobile">
+    <div class="level-left">
+      <h1 class="bv-brand">
+      <picture>
+        <source srcset="/static/budzheved-dark.svg" media="(prefers-color-scheme: dark)">
+        <img src="/static/budzheved-wordmark.svg" alt="Бюджевед" width="248" height="92">
+      </picture>
+      </h1>
+    </div>
+    <div class="level-right">
+      <div class="buttons">
+        <button id="open-import" class="button" type="button">Загрузить выписку</button>
+        <button id="open-add" class="button is-primary" type="button">+ Запись</button>
+      </div>
+    </div>
+  </header>
+
+  <section id="tiles" class="grid is-col-min-10" aria-label="Остатки и долг"></section>
+  <section id="breakdown" class="box bv-breakdown" hidden aria-label="Расходы и доходы по категориям"></section>
+
+  <section class="block bv-filters" aria-label="Фильтры">
+    <label>Месяц <span class="select"><select id="filter-month"></select></span></label>
+    <label>Категория <span class="select"><select id="filter-category"></select></span></label>
+    <label class="checkbox"><input type="checkbox" id="filter-other"> только «прочее»</label>
+    <label class="checkbox" id="filter-shared-wrap"><input type="checkbox" id="filter-shared"> только общие</label>
+    <label class="checkbox" id="filter-new-wrap" hidden><input type="checkbox" id="filter-new"> новые из выписки</label>
+    <input type="search" class="input bv-search" id="filter-search" placeholder="Поиск по описанию" aria-label="Поиск по описанию">
+    <span id="count" class="bv-muted"></span>
+    <div id="density" class="buttons has-addons are-small bv-density" role="group" aria-label="Вид таблицы">
+      <button type="button" class="button" data-density="normal">Обычный</button>
+      <button type="button" class="button" data-density="compact">Компактный</button>
+    </div>
+  </section>
+
+  <main class="box">
+    <div class="table-container">
+      <table id="entries" class="table is-fullwidth is-hoverable is-narrow bv-table">
+        <thead>
+          <tr>
+            <th class="bv-num">№</th><th>Дата</th><th>Описание</th><th class="bv-num">Сумма</th>
+            <th>Категория</th><th id="share-head"></th><th><span class="is-sr-only">Действия</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p id="empty" class="bv-muted" hidden>Под эти фильтры ничего не попало.</p>
+  </main>
+
+  <aside id="drawer" class="box bv-drawer" hidden aria-labelledby="form-title">
+    <form id="entry-form" novalidate>
+      <div class="bv-head">
+        <h2 id="form-title" class="title is-5 mb-0">Новая запись</h2>
+        <button type="button" id="close-drawer" class="delete" aria-label="Закрыть"></button>
+      </div>
+      <div id="form-fields"></div>
+      <div id="form-duplicates" class="notification is-warning mt-4" hidden></div>
+      <p id="form-error" class="help bv-error" role="alert" hidden></p>
+      <div class="buttons mt-4">
+        <button type="submit" class="button is-primary" id="form-submit">Записать</button>
+        <button type="button" class="button" id="form-force" hidden>Всё равно записать</button>
+      </div>
+    </form>
+  </aside>
+
+  <dialog id="import-dialog" class="card bv-dialog" aria-labelledby="import-title">
+    <header class="card-header">
+      <h2 id="import-title" class="card-header-title">Выписка Kaspi</h2>
+      <button type="button" id="close-import" class="delete m-3" aria-label="Закрыть"></button>
+    </header>
+    <div class="card-content">
+      <input type="file" id="import-file" accept="application/pdf,.pdf" aria-label="Файл выписки, PDF">
+      <div id="import-result" class="mt-4"></div>
+      <div class="buttons mt-4">
+        <button type="button" class="button is-primary" id="import-apply" hidden></button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="notification bv-toast" hidden role="status"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
