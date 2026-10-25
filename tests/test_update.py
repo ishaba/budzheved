@@ -208,6 +208,28 @@ class UpdateArchiveTest(unittest.TestCase):
                 update.run(self.code, self.data, Fetch(stub_zip()))
         self.old_code_intact()
 
+    def test_interrupt_after_the_new_code_is_in_place_says_the_update_is_done(self):
+        real = update.replace_retrying
+        calls = []
+
+        def interrupted_after(src, dst):
+            calls.append(src)
+            real(src, dst)
+            if len(calls) == 2:
+                raise KeyboardInterrupt  # Ctrl+C пришёл, когда новый код уже встал на место
+
+        with mock.patch("ledger.update.replace_retrying", side_effect=interrupted_after):
+            with self.assertRaises(LedgerError) as caught:
+                update.run(self.code, self.data, Fetch(stub_zip()))
+        message = str(caught.exception)
+        self.assertIn("переименовывать ничего не нужно", message)
+        self.assertNotIn("переименуйте", message)
+        self.assertEqual((self.code / "README.md").read_text(encoding="utf-8"), "новый\n")
+        self.assertEqual(len(calls), 2)  # назад старый код не возвращали
+        self.assertEqual(
+            sorted(p.name for p in self.tmp.iterdir()), ["budzheved", "Мои деньги"]
+        )  # папка отката убрана
+
     def test_folders_named_like_the_old_code_are_never_deleted(self):
         for name in ("budzheved.old", ".budzheved.old-keep"):
             folder = make_data(self.tmp / name, MINIMAL)
