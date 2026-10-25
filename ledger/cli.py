@@ -387,8 +387,8 @@ def cmd_migrate(args: argparse.Namespace) -> int:
     )
     if report.payer_reset:
         print(
-            "У обмена, снятия и стартового остатка плательщик теперь me (на цифры он не влиял): "
-            + ", ".join(f"#{i}" for i in report.payer_reset)
+            "У обмена, снятия, стартового остатка и дохода плательщик теперь me "
+            "(на цифры он не влиял): " + ", ".join(f"#{i}" for i in report.payer_reset)
         )
     print(f"Копия журнала схемы 1: {report.backup}")
     return 0
