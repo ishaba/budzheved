@@ -174,6 +174,14 @@ def _swap(code_root: Path, new_root: Path) -> None:
     try:
         replace_retrying(new_root, code_root)
     except BaseException as exc:
+        if _in_place(code_root, new_root):
+            # Прерывание пришло после переименования: возвращать нечего.
+            shutil.rmtree(rollback, ignore_errors=True)
+            raise LedgerError(
+                "обновление уже завершено до прерывания: новый код на месте, "
+                "переименовывать ничего не нужно. Выполните budget.py agents, "
+                "чтобы перестроить AGENTS.md новым кодом"
+            ) from None
         try:
             replace_retrying(old, code_root)
         except OSError:
@@ -187,6 +195,11 @@ def _swap(code_root: Path, new_root: Path) -> None:
     # На Windows удаление может не пройти, пока файл открыт: тогда папка отката остаётся,
     # её можно удалить руками.
     shutil.rmtree(rollback, ignore_errors=True)
+
+
+def _in_place(code_root: Path, new_root: Path) -> bool:
+    """Новый код уже стал папкой кода: его прежней папки нет, а в папке кода лежит ledger/cli.py."""
+    return not new_root.exists() and (code_root / "ledger" / "cli.py").is_file()
 
 
 def _remove_empty(folder: Path) -> None:

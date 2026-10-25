@@ -40,6 +40,9 @@ BACKUP_NAME = "journal.v1.csv"
 # Миграция ведёт ровно со схемы 1 на схему 2, что бы ни знал код: переход 2 → 3, если он
 # появится, будет своим шагом со своими формулами.
 TARGET = 2
+# Схема 1 у этих типов плательщика не замечала, а схема 2 его не принимает (у дохода это
+# отдельная проверка): при переводе он становится me.
+PAYER_RESET_TYPES = (*OWN_TYPES, "income")
 _V1_AMOUNT = re.compile(r"[+-]?[0-9]+(\.[0-9]+)?")
 ZERO = Decimal("0")
 V1_SHARE = "share"  # доля человека в сырой строке; в файле колонка называется <имя>_share
@@ -58,7 +61,7 @@ class MigrationReport:
     rows: int
     months: list[str]
     backup: Path
-    # записи обмена, снятия и стартового остатка, у которых paid_by человека стал me
+    # записи обмена, снятия, стартового остатка и дохода, у которых paid_by человека стал me
     payer_reset: list[int] = field(default_factory=list)
 
 
@@ -176,9 +179,9 @@ def _translate(r: Row, person: str) -> Row:
         "currency2": r["currency2"],
         "category": r["category"],
         "description": r["description"],
-        # У обмена, снятия и стартового остатка формулы схемы 1 плательщика не замечали,
-        # а схема 2 его там не принимает: деньги всё равно мои.
-        "paid_by": "me" if r["paid_by"] == "me" or kind in OWN_TYPES else person,
+        # У обмена, снятия, стартового остатка и дохода формулы схемы 1 плательщика не
+        # замечали, а схема 2 его там не принимает: деньги всё равно мои.
+        "paid_by": "me" if r["paid_by"] == "me" or kind in PAYER_RESET_TYPES else person,
         "party": person if kind in PARTY_TYPES else "",
         "shares": f"{person}:{share}" if share else "",
         "tax": "",
@@ -371,5 +374,5 @@ def migrate(data: DataDir, person: str) -> MigrationReport:
                     f"миграция отменена, журнал и настройки возвращены: {reason}"
                 ) from None
             raise
-    reset = [int(r["id"]) for r in rows if r["type"] in OWN_TYPES and r["paid_by"] != "me"]
+    reset = [int(r["id"]) for r in rows if r["type"] in PAYER_RESET_TYPES and r["paid_by"] != "me"]
     return MigrationReport(rows=len(rows), months=months, backup=backup, payer_reset=reset)

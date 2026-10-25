@@ -130,16 +130,23 @@ class MigrateTest(unittest.TestCase):
             )
 
     def test_payer_of_own_money_types_becomes_me(self):
-        # Схема 1 принимала paid_by человека у обмена, снятия и стартового остатка, а формулы
-        # его не замечали: такие записи переходят на me, цифры прежние.
-        self.original = self.original.replace(
-            "обмен у Сокола,me,0".encode(), "обмен у Сокола,anya,0".encode(), 1
-        ).replace("в банкомате Альфа,me,0".encode(), "в банкомате Альфа,anya,0".encode(), 1)
+        # Схема 1 принимала paid_by человека у обмена, снятия, стартового остатка и дохода, а
+        # формулы его не замечали: такие записи переходят на me, цифры прежние.
+        self.original = (
+            self.original.replace(
+                "обмен у Сокола,me,0".encode(), "обмен у Сокола,anya,0".encode(), 1
+            )
+            .replace("в банкомате Альфа,me,0".encode(), "в банкомате Альфа,anya,0".encode(), 1)
+            .replace("стартовый остаток,me,0".encode(), "стартовый остаток,anya,0".encode(), 1)
+            .replace("Зарплата Альфа,me,0".encode(), "Зарплата Альфа,anya,0".encode(), 1)
+        )
         self.data.journal.write_bytes(self.original)
         report = migrate.migrate(self.data, "anya")
-        self.assertEqual(report.payer_reset, [12, 13])
+        self.assertEqual(report.payer_reset, [1, 11, 12, 13])
         entries = {e.id: e for e in load(self.data.journal, load_settings(self.data.settings_file))}
-        self.assertEqual((entries[12].paid_by, entries[13].paid_by), ("me", "me"))
+        for entry_id, kind in ((1, "opening_balance"), (11, "income"), (12, "exchange")):
+            self.assertEqual((entries[entry_id].type, entries[entry_id].paid_by), (kind, "me"))
+        self.assertEqual(entries[13].paid_by, "me")
 
     def test_second_migrate_refuses(self):
         migrate.migrate(self.data, "anya")
@@ -282,7 +289,9 @@ class MigrateTest(unittest.TestCase):
         self.assertEqual(self.data.journal.read_bytes(), self.original)
 
     def test_target_schema_is_2_whatever_the_code_knows(self):
-        with mock.patch("ledger.migrate.SCHEMA", 3, create=True):
+        # Код мог дорасти до схемы 3, а migrate всё равно ведёт 1 → 2: переход 2 → 3 будет своим.
+        with mock.patch("ledger.settings.SCHEMA", 3):
+            self.assertEqual(migrate.TARGET, 2)
             migrate.migrate(self.data, "anya")
         self.assertEqual(self.data.settings_file.read_text(encoding="utf-8"), SETTINGS_V2)
 
@@ -338,6 +347,22 @@ class MigrateCliTest(unittest.TestCase):
         code, out, err = self.run_cli(*add)
         self.assertEqual((code, err), (0, ""))
         self.assertIn("#36", out)
+
+    def test_migrate_prints_ids_of_rewritten_payers(self):
+        journal = FIXTURE.read_bytes()
+        journal = journal.replace(
+            "Зарплата Альфа,me,0".encode(), "Зарплата Альфа,anya,0".encode(), 1
+        ).replace("обмен у Сокола,me,0".encode(), "обмен у Сокола,anya,0".encode(), 1)
+        self.data.journal.write_bytes(journal)
+        code, out, err = self.run_cli("migrate", "--person", "anya")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("плательщик теперь me", out)
+        self.assertIn("#11, #12", out)
+
+    def test_migrate_without_rewritten_payers_prints_no_list(self):
+        code, out, _ = self.run_cli("migrate", "--person", "anya")
+        self.assertEqual(code, 0)
+        self.assertNotIn("плательщик теперь me", out)
 
     def test_migrate_is_listed_in_help(self):
         code, out, _ = self.run_cli("--help")

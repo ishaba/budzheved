@@ -524,8 +524,12 @@ class ExtensionsTest(unittest.TestCase):
         before = self.data.journal.read_bytes()
         code, out, _ = self.run_cli("check")
         self.assertEqual(code, 1)
+        self.assertIn("тесты расширения writer изменили journal.csv мимо основы", out)
+        # файлы мог менять не только тест: сказать прямо, что откат захватил всё за время проверки
         self.assertIn(
-            "тесты расширения writer изменили journal.csv мимо основы; изменения возвращены", out
+            "все изменения за время проверки, в том числе со страницы, отменены: "
+            "если правили вы, повторите",
+            out,
         )
         self.assertEqual(self.data.journal.read_bytes(), before)
 
